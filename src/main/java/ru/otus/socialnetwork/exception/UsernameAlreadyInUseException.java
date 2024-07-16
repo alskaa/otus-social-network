@@ -3,11 +3,11 @@ package ru.otus.socialnetwork.exception;
 import lombok.Getter;
 
 @Getter
-public class NotFoundException extends RuntimeException {
+public class UsernameAlreadyInUseException extends RuntimeException {
 
     private final String message;
 
-    public NotFoundException(Long id) {
-        this.message = String.format("Entity with id %s not found", id);
+    public UsernameAlreadyInUseException(String username) {
+        this.message = String.format("Username %s already in use", username);
     }
 }

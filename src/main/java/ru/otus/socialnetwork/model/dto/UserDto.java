@@ -1,4 +1,4 @@
-package ru.otus.socialnetwork.model.entity;
+package ru.otus.socialnetwork.model.dto;
 
 import lombok.Data;
 import ru.otus.socialnetwork.model.enumeration.Sex;
@@ -6,9 +6,9 @@ import ru.otus.socialnetwork.model.enumeration.Sex;
 import java.util.Date;
 
 @Data
-public class UserEntity {
+public class UserDto {
     private Long id;
-    private String login;
+    private String username;
     private String firstName;
     private String secondName;
     private Date birthDate;

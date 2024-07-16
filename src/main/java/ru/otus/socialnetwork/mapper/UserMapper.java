@@ -1,14 +1,25 @@
-package ru.mmtr.orderservice.mapper;
+package ru.otus.socialnetwork.mapper;
+
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.mmtr.common.dto.object.invoice.InvoiceDto;
-import ru.mmtr.common.dto.object.invoice.InvoiceShortDto;
+import ru.otus.socialnetwork.model.dto.UserDto;
+import ru.otus.socialnetwork.model.entity.UserEntity;
 
+import java.util.List;
 
 @Mapper(componentModel = "spring")
-public abstract class InvoiceMapper {
+public abstract class UserMapper {
 
     @Mapping(target = ".", source = ".")
-    public abstract InvoiceShortDto mapToInvoiceShortDto(InvoiceDto invoice);
+    public abstract UserDto mapToDto(UserEntity entity);
+
+    @Mapping(target = ".", source = ".")
+    public abstract List<UserDto> mapToDto(List<UserEntity> entities);
+
+    @Mapping(target = ".", source = ".")
+    public abstract UserEntity mapToEntity(UserDto dto);
+
+    @Mapping(target = ".", source = ".")
+    public abstract List<UserEntity> mapToEntity(List<UserDto> dto);
 }

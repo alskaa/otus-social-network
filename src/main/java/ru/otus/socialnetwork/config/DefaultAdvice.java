@@ -1,19 +1,23 @@
 package ru.otus.socialnetwork.config;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.otus.socialnetwork.exception.NotFoundException;
+import ru.otus.socialnetwork.exception.UsernameAlreadyInUseException;
 
-@ControllerAdvice
-public class c {
+@RestControllerAdvice
+public class DefaultAdvice {
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Response> handleException(NotFoundException e) {
-        Response response = new Response(e.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> handleException(NotFoundException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UsernameAlreadyInUseException.class)
+    public ResponseEntity<?> handleException(UsernameAlreadyInUseException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
 
 }

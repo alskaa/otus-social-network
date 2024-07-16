@@ -1,20 +1,41 @@
 package ru.otus.socialnetwork.model.entity;
 
+import lombok.Builder;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import ru.otus.socialnetwork.model.enumeration.Sex;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Date;
+import java.util.Collection;
+import java.util.List;
 
 @Data
-public class UserEntity {
-    @Id
-    private Long id;
-    private String login;
-    private String firstName;
-    private String secondName;
-    private Date birthDate;
-    private Sex sex;
-    private String biography;
-    private String city;
+@Builder
+public class AccountEntity implements UserDetails {
+    private String username;
+    private String password;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return UserDetails.super.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
+    }
 }

@@ -1,74 +1,117 @@
-package ru.otus.socialnetwork.repository;
+package ru.otus.socialnetwork.repository.impl;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.otus.socialnetwork.model.entity.UserEntity;
+import ru.otus.socialnetwork.repository.UserRepository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.util.Objects;
 import java.util.Optional;
 
+import static java.util.Objects.nonNull;
+
 @Repository
-public class UserRepository implements CrudRepository<UserEntity, Long> {
+public class UserJDBCRepository implements UserRepository {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+    private final GeneratedKeyHolder keyHolder;
+    private final BeanPropertyRowMapper<UserEntity> userRowMapper;
+
+    public UserJDBCRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.keyHolder = new GeneratedKeyHolder();
+        this.userRowMapper = BeanPropertyRowMapper.newInstance(UserEntity.class);
+    }
+
 
     @Override
-    public <S extends UserEntity> S save(S entity) {
-        return null;
+    public Optional<UserEntity> findById(Long id) {
+        try {
+            return Optional.ofNullable(
+                    jdbcTemplate.queryForObject(
+                            "select * from user_info where id = ?",
+                            userRowMapper,
+                            id)
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public <S extends UserEntity> Iterable<S> saveAll(Iterable<S> entities) {
-        return null;
+    public Optional<UserEntity> findByUsername(String username) {
+        try {
+            return Optional.ofNullable(
+                    jdbcTemplate.queryForObject(
+                            "select * from user_info where username = ?",
+                            userRowMapper,
+                            username)
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<UserEntity> findById(Long aLong) {
-        return Optional.empty();
-    }
+    public UserEntity save(UserEntity entity) {
 
-    @Override
-    public boolean existsById(Long aLong) {
-        return false;
-    }
+        jdbcTemplate.update(conn -> {
 
-    @Override
-    public Iterable<UserEntity> findAll() {
-        return null;
-    }
+            PreparedStatement preparedStatement = conn.prepareStatement(
+                    "insert into user_info (username, first_name, second_name, birth_date, sex, biography, city) values(?,?,?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS);
 
-    @Override
-    public Iterable<UserEntity> findAllById(Iterable<Long> longs) {
-        return null;
-    }
+            preparedStatement.setString(1, entity.getUsername());
+            preparedStatement.setString(2, entity.getFirstName());
+            preparedStatement.setString(3, entity.getSecondName());
+            preparedStatement.setObject(4, entity.getBirthDate());
+            preparedStatement.setObject(5, entity.getSex());
+            preparedStatement.setString(6, entity.getBiography());
+            preparedStatement.setString(6, entity.getCity());
 
-    @Override
-    public long count() {
-        return 0;
-    }
 
-    @Override
-    public void deleteById(Long aLong) {
+            return preparedStatement;
 
-    }
+        }, keyHolder);
 
-    @Override
-    public void delete(UserEntity entity) {
 
-    }
-
-    @Override
-    public void deleteAllById(Iterable<? extends Long> longs) {
-
-    }
-
-    @Override
-    public void deleteAll(Iterable<? extends UserEntity> entities) {
+        long id = (long) Objects.requireNonNull(keyHolder.getKeys()).get("id");
+        return jdbcTemplate.queryForObject(
+                "select * from user_info where id = ?",
+                userRowMapper,
+                id);
 
     }
 
     @Override
-    public void deleteAll() {
+    public void deleteById(Long id) {
+        jdbcTemplate.update(
+                "delete from user_info where id = ?",
+                id);
 
+    }
+
+    @Override
+    public UserEntity updateById(Long id, UserEntity entity) {
+
+        jdbcTemplate.update(
+                "update user_info set first_name = ?, second_name = ?, birth_date = ?, sex = ?, biography = ?, city = ? where id = ?",
+                entity.getFirstName(),
+                entity.getSecondName(),
+                entity.getBirthDate(),
+                nonNull(entity.getSex()) ? entity.getSex().name() : null,
+                entity.getBiography(),
+                entity.getCity(),
+                id);
+
+        return jdbcTemplate.queryForObject(
+                "select * from user_info where id = ?",
+                userRowMapper,
+                id);
     }
 }
