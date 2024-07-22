@@ -11,6 +11,8 @@ import ru.otus.socialnetwork.model.entity.UserEntity;
 import ru.otus.socialnetwork.repository.UserRepository;
 import ru.otus.socialnetwork.service.UserService;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -49,5 +51,9 @@ public class UserServiceImpl implements UserService {
         return mapper.mapToDto(userEntity);
     }
 
-
+    @Override
+    public List<UserDto> search(String firstName, String lastName) {
+        List<UserEntity> userEntities = repository.search(firstName, lastName);
+        return mapper.mapToDto(userEntities);
+    }
 }

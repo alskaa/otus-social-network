@@ -10,6 +10,7 @@ import ru.otus.socialnetwork.repository.UserRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -17,6 +18,8 @@ import static java.util.Objects.nonNull;
 
 @Repository
 public class UserJDBCRepository implements UserRepository {
+
+    private final static String searchTemplate = "%%%s%%";
 
     private final JdbcTemplate jdbcTemplate;
     private final GeneratedKeyHolder keyHolder;
@@ -63,16 +66,16 @@ public class UserJDBCRepository implements UserRepository {
         jdbcTemplate.update(conn -> {
 
             PreparedStatement preparedStatement = conn.prepareStatement(
-                    "insert into user_info (username, first_name, second_name, birth_date, sex, biography, city) values(?,?,?,?,?,?)",
+                    "insert into user_info (username, first_name, last_name, birth_date, sex, biography, city) values(?,?,?,?,?,?,?)",
                     Statement.RETURN_GENERATED_KEYS);
 
             preparedStatement.setString(1, entity.getUsername());
             preparedStatement.setString(2, entity.getFirstName());
-            preparedStatement.setString(3, entity.getSecondName());
+            preparedStatement.setString(3, entity.getLastName());
             preparedStatement.setObject(4, entity.getBirthDate());
             preparedStatement.setObject(5, entity.getSex());
             preparedStatement.setString(6, entity.getBiography());
-            preparedStatement.setString(6, entity.getCity());
+            preparedStatement.setString(7, entity.getCity());
 
 
             return preparedStatement;
@@ -100,9 +103,9 @@ public class UserJDBCRepository implements UserRepository {
     public UserEntity updateById(Long id, UserEntity entity) {
 
         jdbcTemplate.update(
-                "update user_info set first_name = ?, second_name = ?, birth_date = ?, sex = ?, biography = ?, city = ? where id = ?",
+                "update user_info set first_name = ?, last_name = ?, birth_date = ?, sex = ?, biography = ?, city = ? where id = ?",
                 entity.getFirstName(),
-                entity.getSecondName(),
+                entity.getLastName(),
                 entity.getBirthDate(),
                 nonNull(entity.getSex()) ? entity.getSex().name() : null,
                 entity.getBiography(),
@@ -113,5 +116,14 @@ public class UserJDBCRepository implements UserRepository {
                 "select * from user_info where id = ?",
                 userRowMapper,
                 id);
+    }
+
+    @Override
+    public List<UserEntity> search(String firstName, String lastName) {
+        return jdbcTemplate.query(
+                "select * from user_info where lower(first_name) like lower(?) and lower(last_name) like lower(?) order by id",
+                userRowMapper,
+                searchTemplate.formatted(firstName),
+                searchTemplate.formatted(lastName));
     }
 }

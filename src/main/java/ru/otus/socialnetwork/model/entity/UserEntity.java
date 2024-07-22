@@ -18,7 +18,7 @@ public class UserEntity {
     private Long id;
     private String username;
     private String firstName;
-    private String secondName;
+    private String lastName;
     private Date birthDate;
     private Sex sex;
     private String biography;
