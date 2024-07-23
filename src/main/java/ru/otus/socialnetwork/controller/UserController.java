@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.otus.socialnetwork.model.dto.UserDto;
 import ru.otus.socialnetwork.service.UserService;
+
+import java.util.List;
 
 
 @RestController
@@ -34,5 +37,10 @@ public class UserController {
     @PutMapping("update/{id}")
     public ResponseEntity<UserDto> updateById(@PathVariable Long id, @RequestBody UserDto userDto) {
         return ResponseEntity.ok(service.update(id, userDto));
+    }
+
+    @GetMapping("search")
+    public ResponseEntity<List<UserDto>> search(@RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName) {
+        return ResponseEntity.ok(service.search(firstName, lastName));
     }
 }
