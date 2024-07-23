@@ -120,10 +120,31 @@ public class UserJDBCRepository implements UserRepository {
 
     @Override
     public List<UserEntity> search(String firstName, String lastName) {
-        return jdbcTemplate.query(
-                "select * from user_info where lower(first_name) like lower(?) and lower(last_name) like lower(?) order by id",
-                userRowMapper,
-                searchTemplate.formatted(firstName),
-                searchTemplate.formatted(lastName));
+        String firstNameTemplate = searchTemplate.formatted(firstName);
+        String lastNameTemplate = searchTemplate.formatted(lastName);
+
+        if (nonNull(firstName) && nonNull(lastName)) {
+            return jdbcTemplate.query(
+                    "select * from user_info where lower(first_name) like lower(?) and lower(last_name) like lower(?) order by id",
+                    userRowMapper,
+                    firstNameTemplate,
+                    lastNameTemplate);
+        }
+
+        if (nonNull(firstName)){
+            return jdbcTemplate.query(
+                    "select * from user_info where lower(first_name) like lower(?) order by id",
+                    userRowMapper,
+                    firstNameTemplate);
+        }
+
+        if (nonNull(lastName)) {
+            return jdbcTemplate.query(
+                    "select * from user_info where lower(last_name) like lower(?) order by id",
+                    userRowMapper,
+                    lastNameTemplate);
+        }
+
+        return List.of();
     }
 }
