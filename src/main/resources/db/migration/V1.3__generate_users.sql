@@ -12,8 +12,8 @@ COPY temp(first_name, age, city)
     CSV HEADER;
 
 update temp
-set first_name = split_part(first_name, ' ', 1),
-    last_name = split_part(first_name, ' ', 2);
+set first_name = split_part(first_name, ' ', 2),
+    last_name = split_part(first_name, ' ', 1);
 
 DO $do$
     DECLARE rec record;

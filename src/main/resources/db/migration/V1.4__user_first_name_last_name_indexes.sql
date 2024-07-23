@@ -1,0 +1,2 @@
+create index if not exists idx_user_info_last_name_btree on user_info using btree(lower(last_name) text_pattern_ops);
+create index if not exists idx_user_info_first_name_btree on user_info using btree(lower(first_name) text_pattern_ops);

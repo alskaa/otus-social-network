@@ -19,7 +19,7 @@ import static java.util.Objects.nonNull;
 @Repository
 public class UserJDBCRepository implements UserRepository {
 
-    private final static String searchTemplate = "%%%s%%";
+    private final static String searchTemplate = "%s%%";
 
     private final JdbcTemplate jdbcTemplate;
     private final GeneratedKeyHolder keyHolder;
