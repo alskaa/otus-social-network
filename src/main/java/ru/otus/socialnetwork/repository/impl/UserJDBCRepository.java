@@ -1,5 +1,6 @@
 package ru.otus.socialnetwork.repository.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,12 +22,15 @@ public class UserJDBCRepository implements UserRepository {
 
     private final static String searchTemplate = "%s%%";
 
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate masterJdbcTemplate;
+    private final JdbcTemplate replicaJdbcTemplate;
     private final GeneratedKeyHolder keyHolder;
     private final BeanPropertyRowMapper<UserEntity> userRowMapper;
 
-    public UserJDBCRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public UserJDBCRepository(@Qualifier("masterJdbcTemplate") JdbcTemplate masterJdbcTemplate,
+                              @Qualifier("replicaJdbcTemplate") JdbcTemplate replicaJdbcTemplate) {
+        this.masterJdbcTemplate = masterJdbcTemplate;
+        this.replicaJdbcTemplate = replicaJdbcTemplate;
         this.keyHolder = new GeneratedKeyHolder();
         this.userRowMapper = BeanPropertyRowMapper.newInstance(UserEntity.class);
     }
@@ -36,7 +40,7 @@ public class UserJDBCRepository implements UserRepository {
     public Optional<UserEntity> findById(Long id) {
         try {
             return Optional.ofNullable(
-                    jdbcTemplate.queryForObject(
+                    replicaJdbcTemplate.queryForObject(
                             "select * from user_info where id = ?",
                             userRowMapper,
                             id)
@@ -50,7 +54,7 @@ public class UserJDBCRepository implements UserRepository {
     public Optional<UserEntity> findByUsername(String username) {
         try {
             return Optional.ofNullable(
-                    jdbcTemplate.queryForObject(
+                    replicaJdbcTemplate.queryForObject(
                             "select * from user_info where username = ?",
                             userRowMapper,
                             username)
@@ -63,7 +67,7 @@ public class UserJDBCRepository implements UserRepository {
     @Override
     public UserEntity save(UserEntity entity) {
 
-        jdbcTemplate.update(conn -> {
+        masterJdbcTemplate.update(conn -> {
 
             PreparedStatement preparedStatement = conn.prepareStatement(
                     "insert into user_info (username, first_name, last_name, birth_date, sex, biography, city) values(?,?,?,?,?,?,?)",
@@ -84,7 +88,7 @@ public class UserJDBCRepository implements UserRepository {
 
 
         long id = (long) Objects.requireNonNull(keyHolder.getKeys()).get("id");
-        return jdbcTemplate.queryForObject(
+        return masterJdbcTemplate.queryForObject(
                 "select * from user_info where id = ?",
                 userRowMapper,
                 id);
@@ -93,7 +97,7 @@ public class UserJDBCRepository implements UserRepository {
 
     @Override
     public void deleteById(Long id) {
-        jdbcTemplate.update(
+        masterJdbcTemplate.update(
                 "delete from user_info where id = ?",
                 id);
 
@@ -102,7 +106,7 @@ public class UserJDBCRepository implements UserRepository {
     @Override
     public UserEntity updateById(Long id, UserEntity entity) {
 
-        jdbcTemplate.update(
+        masterJdbcTemplate.update(
                 "update user_info set first_name = ?, last_name = ?, birth_date = ?, sex = ?, biography = ?, city = ? where id = ?",
                 entity.getFirstName(),
                 entity.getLastName(),
@@ -112,7 +116,7 @@ public class UserJDBCRepository implements UserRepository {
                 entity.getCity(),
                 id);
 
-        return jdbcTemplate.queryForObject(
+        return masterJdbcTemplate.queryForObject(
                 "select * from user_info where id = ?",
                 userRowMapper,
                 id);
@@ -124,7 +128,7 @@ public class UserJDBCRepository implements UserRepository {
         String lastNameTemplate = searchTemplate.formatted(lastName);
 
         if (nonNull(firstName) && nonNull(lastName)) {
-            return jdbcTemplate.query(
+            return replicaJdbcTemplate.query(
                     "select * from user_info where lower(first_name) like lower(?) and lower(last_name) like lower(?) order by id",
                     userRowMapper,
                     firstNameTemplate,
@@ -132,14 +136,14 @@ public class UserJDBCRepository implements UserRepository {
         }
 
         if (nonNull(firstName)){
-            return jdbcTemplate.query(
+            return replicaJdbcTemplate.query(
                     "select * from user_info where lower(first_name) like lower(?) order by id",
                     userRowMapper,
                     firstNameTemplate);
         }
 
         if (nonNull(lastName)) {
-            return jdbcTemplate.query(
+            return replicaJdbcTemplate.query(
                     "select * from user_info where lower(last_name) like lower(?) order by id",
                     userRowMapper,
                     lastNameTemplate);
